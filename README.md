@@ -30,3 +30,4 @@ This guide explains the steps to create a custom iOS 6.1.4 IPSW that bypasses SH
 1. **Install Homebrew** (if not already installed):
    ```bash
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
