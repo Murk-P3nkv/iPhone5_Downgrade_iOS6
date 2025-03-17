@@ -1,5 +1,3 @@
-# Custom iOS 6.1.4 IPSW for iPhone 5,2 (A6) Without SHSH
-
 > **Disclaimer:**  
 > This guide is experimental and intended for educational purposes only. Modifying and flashing custom firmware may brick your device. Use at your own risk.
 
@@ -14,7 +12,7 @@ This guide explains the steps to create a custom iOS 6.1.4 IPSW that bypasses SH
 ## Requirements
 
 - **Device:** iPhone 5,2 (A6)
-- **OS:** macOS or Linux (Ubuntu/Debian). Windows is not recommended.
+- **OS:** macOS or Linux (Ubuntu/Debian) — Windows is not recommended.
 - **Tools:**  
   - [ipwndfu](https://github.com/axi0mX/ipwndfu) (for entering pwned DFU)  
   - [libimobiledevice](https://libimobiledevice.org/), `idevicerestore`, and `irecovery`  
@@ -30,4 +28,138 @@ This guide explains the steps to create a custom iOS 6.1.4 IPSW that bypasses SH
 1. **Install Homebrew** (if not already installed):
    ```bash
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+Restart your terminal after installation.
 
+Install dependencies:
+bash
+Копировать
+Редактировать
+brew install libusb libimobiledevice idevicerestore irecovery python3
+On Linux (Ubuntu/Debian)
+bash
+Копировать
+Редактировать
+sudo apt update
+sudo apt install libusb-1.0-0-dev libimobiledevice-utils python3 python3-pip unzip
+Clone and Build Additional Tools
+Clone and install ipwndfu:
+
+bash
+Копировать
+Редактировать
+git clone https://github.com/axi0mX/ipwndfu.git
+cd ipwndfu
+pip3 install -r requirements.txt
+cd ..
+Clone and build img4tool:
+
+bash
+Копировать
+Редактировать
+git clone https://github.com/tihmstar/img4tool.git
+cd img4tool
+make && sudo make install
+cd ..
+Clone and build xpwntool:
+
+bash
+Копировать
+Редактировать
+git clone https://github.com/planetbeing/xpwntool.git
+cd xpwntool
+make && sudo make install
+cd ..
+Clone and build iBootPatcher:
+
+bash
+Копировать
+Редактировать
+git clone https://github.com/sbingner/iBoot64Patcher.git
+cd iBoot64Patcher
+make && sudo make install
+cd ..
+Test that the tools are installed:
+
+bash
+Копировать
+Редактировать
+ipwndfu --checkm8
+irecovery -v
+idevicerestore -h
+img4tool -v
+Step-by-Step Process
+Step 1: Unpack iOS 6.1.4 IPSW
+Download the original IPSW:
+
+bash
+Копировать
+Редактировать
+wget http://updates.cdn-apple.com/iPhone5,2_6.1.4_10B350_Restore.ipsw
+Unzip the IPSW:
+
+bash
+Копировать
+Редактировать
+unzip iPhone5,2_6.1.4_10B350_Restore.ipsw -d ios6_extracted
+Extract iBoot and iBEC:
+
+bash
+Копировать
+Редактировать
+cp ios6_extracted/Firmware/dfu/iBEC.n42.RELEASE.dfu iBEC6.dfu
+cp ios6_extracted/Firmware/all_flash/all_flash.n42ap.production/iBoot.n42.RELEASE.img3 iBoot6.img3
+Step 2: Patch iBoot and iBEC (Remove SHSH Checks)
+Patch iBoot (remove digital signature verification):
+
+bash
+Копировать
+Редактировать
+iBootPatcher iBoot6.img3 patched_iBoot6.img3
+Patch iBEC (allow loading of unsigned firmware):
+Note: You must supply your initialization vector (IV) and key.
+
+bash
+Копировать
+Редактировать
+xpwntool iBEC6.dfu patched_iBEC6.dfu -iv $(cat iv) -k $(cat key)
+Step 3: Create the Custom iOS 6.1.4 IPSW
+Replace the original files with the patched versions:
+
+bash
+Копировать
+Редактировать
+cp patched_iBoot6.img3 ios6_extracted/Firmware/all_flash/all_flash.n42ap.production/iBoot.n42.RELEASE.img3
+cp patched_iBEC6.dfu ios6_extracted/Firmware/dfu/iBEC.n42.RELEASE.dfu
+Repack the IPSW:
+
+bash
+Копировать
+Редактировать
+zip -r Custom_iOS6.ipsw ios6_extracted
+Step 4: Flash the Custom IPSW
+Enter pwned DFU mode with ipwndfu:
+
+bash
+Копировать
+Редактировать
+./ipwndfu -p
+Load a patched iBSS (to bypass SHSH checks):
+
+bash
+Копировать
+Редактировать
+irecovery -f patched_iBSS.dfu
+irecovery -c go
+Restore the custom IPSW:
+
+bash
+Копировать
+Редактировать
+idevicerestore -w Custom_iOS6.ipsw
+Reboot your device and enjoy your fully untethered iOS 6.1.4!
+
+Final Notes
+Risks: This process is experimental and may result in a non-booting device if not done correctly.
+Support: Limited documentation exists for these methods. Check community forums and GitHub repositories (such as checkm8-related projects) for additional support.
+Backup: Always back up your device before attempting any modifications.
+Feel free to fork this repository or submit issues if you encounter any problems. Happy hacking!
